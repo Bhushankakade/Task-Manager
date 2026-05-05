@@ -10,15 +10,23 @@ export default function Dashboard() {
   const [filter, setFilter] = useState("");
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(false); 
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   const fetchTasks = async () => {
-    const res = await api.get("/tasks", {
-      params: { status: filter, page, limit: 5 },
-    });
-    setTasks(res.data.tasks);
-    setTotal(res.data.total);
+    setLoading(true); 
+    try {
+      const res = await api.get("/tasks", {
+        params: { status: filter, page, limit: 5 },
+      });
+      setTasks(res.data.tasks);
+      setTotal(res.data.total);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false); 
+    }
   };
 
   useEffect(() => {
@@ -39,7 +47,6 @@ export default function Dashboard() {
 
   return (
     <div className="container">
-      {/* Header */}
       <div className="dashboard-header">
         <span className="brand">TaskManager</span>
         <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
@@ -50,10 +57,8 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Add Task */}
       <TaskForm onTaskAdded={handleAdd} />
 
-      {/* Filter */}
       <div className="filter-bar">
         <label>Filter</label>
         <select
@@ -68,14 +73,20 @@ export default function Dashboard() {
         </select>
       </div>
 
-      {/* Task List */}
-      <TaskList tasks={tasks} onUpdate={handleUpdate} onDelete={handleDelete} />
+      {loading ? (
+        <div className="empty-state">Loading tasks...</div>
+      ) : (
+        <TaskList
+          tasks={tasks}
+          onUpdate={handleUpdate}
+          onDelete={handleDelete}
+        />
+      )}
 
-      {/* Pagination */}
       <div className="pagination">
         <button
           className="btn btn-outline"
-          disabled={page === 1}
+          disabled={page === 1 || loading}
           onClick={() => setPage((p) => p - 1)}
         >
           ← Prev
@@ -83,7 +94,7 @@ export default function Dashboard() {
         <span>Page {page}</span>
         <button
           className="btn btn-outline"
-          disabled={page * 5 >= total}
+          disabled={page * 5 >= total || loading}
           onClick={() => setPage((p) => p + 1)}
         >
           Next →

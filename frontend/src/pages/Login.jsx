@@ -6,17 +6,21 @@ import { useAuth } from "../context/AuthContext";
 export default function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
       const res = await api.post("/auth/login", form);
       login(res.data);
       navigate("/dashboard");
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -39,7 +43,6 @@ export default function Login() {
               onChange={(e) => setForm({ ...form, email: e.target.value })}
             />
           </div>
-
           <div className="form-group">
             <label>Password</label>
             <input
@@ -48,9 +51,12 @@ export default function Login() {
               onChange={(e) => setForm({ ...form, password: e.target.value })}
             />
           </div>
-
-          <button type="submit" className="btn btn-primary btn-full">
-            Login
+          <button
+            type="submit"
+            className="btn btn-primary btn-full"
+            disabled={loading}
+          >
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
       </div>

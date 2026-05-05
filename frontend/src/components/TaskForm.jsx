@@ -3,13 +3,19 @@ import api from "../api/axios";
 
 export default function TaskForm({ onTaskAdded }) {
   const [form, setForm] = useState({ title: "", description: "" });
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.title.trim()) return alert("Title is required");
-    const res = await api.post("/tasks", form);
-    onTaskAdded(res.data);
-    setForm({ title: "", description: "" });
+    setLoading(true);
+    try {
+      const res = await api.post("/tasks", form);
+      onTaskAdded(res.data);
+      setForm({ title: "", description: "" });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -31,8 +37,8 @@ export default function TaskForm({ onTaskAdded }) {
             value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
           />
-          <button type="submit" className="btn btn-primary">
-            + Add
+          <button type="submit" className="btn btn-primary" disabled={loading}>
+            {loading ? "Adding..." : "+ Add"}
           </button>
         </div>
       </form>

@@ -1,14 +1,28 @@
+import { useState } from "react";
 import api from "../api/axios";
 
 export default function TaskCard({ task, onUpdate, onDelete }) {
+  const [completing, setCompleting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
   const handleComplete = async () => {
-    const res = await api.patch(`/tasks/${task._id}`);
-    onUpdate(res.data);
+    setCompleting(true);
+    try {
+      const res = await api.patch(`/tasks/${task._id}`);
+      onUpdate(res.data);
+    } finally {
+      setCompleting(false);
+    }
   };
 
   const handleDelete = async () => {
-    await api.delete(`/tasks/${task._id}`);
-    onDelete(task._id);
+    setDeleting(true);
+    try {
+      await api.delete(`/tasks/${task._id}`);
+      onDelete(task._id);
+    } finally {
+      setDeleting(false);
+    }
   };
 
   return (
@@ -28,12 +42,20 @@ export default function TaskCard({ task, onUpdate, onDelete }) {
 
       <div className="task-actions">
         {task.status === "pending" && (
-          <button className="btn btn-success" onClick={handleComplete}>
-            ✓ Done
+          <button
+            className="btn btn-success"
+            onClick={handleComplete}
+            disabled={completing}
+          >
+            {completing ? "..." : "✓ Done"}
           </button>
         )}
-        <button className="btn btn-danger" onClick={handleDelete}>
-          ✕
+        <button
+          className="btn btn-danger"
+          onClick={handleDelete}
+          disabled={deleting}
+        >
+          {deleting ? "..." : "✕"}
         </button>
       </div>
     </div>

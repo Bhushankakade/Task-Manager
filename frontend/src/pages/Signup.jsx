@@ -6,17 +6,21 @@ import { useAuth } from "../context/AuthContext";
 export default function Signup() {
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
       const res = await api.post("/auth/signup", form);
       login(res.data);
       navigate("/dashboard");
     } catch (err) {
       setError(err.response?.data?.message || "Signup failed");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -39,7 +43,6 @@ export default function Signup() {
               onChange={(e) => setForm({ ...form, name: e.target.value })}
             />
           </div>
-
           <div className="form-group">
             <label>Email</label>
             <input
@@ -48,7 +51,6 @@ export default function Signup() {
               onChange={(e) => setForm({ ...form, email: e.target.value })}
             />
           </div>
-
           <div className="form-group">
             <label>Password</label>
             <input
@@ -57,9 +59,12 @@ export default function Signup() {
               onChange={(e) => setForm({ ...form, password: e.target.value })}
             />
           </div>
-
-          <button type="submit" className="btn btn-primary btn-full">
-            Create Account
+          <button
+            type="submit"
+            className="btn btn-primary btn-full"
+            disabled={loading}
+          >
+            {loading ? "Creating account..." : "Create Account"}
           </button>
         </form>
       </div>
